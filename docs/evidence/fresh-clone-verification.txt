@@ -1,0 +1,16 @@
+## Fresh-clone verification 2026-11-24 17:12 CET
+commit: 2a4612c NC-7 docs: add README with Docker and local run steps
+### Docker path (README Option A, PORT=3200)
+ Container nc-freshclone-tracker-1 Started 
+{"status":"ok"}
+GET / -> 200 text/html; charset=utf-8
+GET /static/styles.css -> 200 text/css; charset=utf-8
+  requests sent          138
+  unexpected               0
+Dashboard verification: OK (5 players, 0 mismatches)
+container health: healthy
+ Network nc-freshclone_default Removed 
+### Local path (README Option B)
+ℹ tests 172
+ℹ pass 172
+ℹ fail 0

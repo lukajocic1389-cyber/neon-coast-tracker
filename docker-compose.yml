@@ -1,0 +1,12 @@
+services:
+  tracker:
+    build: .
+    image: neon-coast-tracker:local
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - tracker-data:/data
+    restart: unless-stopped
+
+volumes:
+  tracker-data:

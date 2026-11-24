@@ -12,3 +12,5 @@ assignment.pdf
 private/
 # Local Claude Code settings
 .claude/settings.local.json
+# Worker finished signal (orchestration only)
+.worker-done

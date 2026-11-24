@@ -1,0 +1,22 @@
+{
+  "name": "neon-coast-tracker",
+  "version": "0.1.0",
+  "description": "Neon Coast: Mission & Reputation Tracker (fictional companion app for an AI-native SDLC assessment)",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test --test-reporter=spec \"test/**/*.test.js\"",
+    "simulate": "node scripts/simulate.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.2"
+  }
+}
