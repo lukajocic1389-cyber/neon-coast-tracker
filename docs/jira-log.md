@@ -57,3 +57,25 @@ Jira: https://lukajocic1389.atlassian.net/browse/NC-1
 > **Changes in scope:** none. One process note: the orchestrator is writing the integration tests from spec.md only, without reading the worker code, so the tests are an independent check (decision #10 in docs/ai-decisions.md).
 >
 > **Status:** NC-1 In Progress · NC-3 / NC-4 / NC-5 In Progress. NC-5 moves to Done after the integration end-to-end test passes against the real store.
+
+## 2026-11-24 17:09 CET: Phase update: Implementation (end) (agent, via MCP), comment id 10002
+**Transitions:** NC-3, NC-4, NC-5 → **Done** · NC-6 → **In Progress** · NC-1 stays In Progress
+
+> **[Phase update: Implementation (end)] posted by the Claude Code orchestrator agent via the Atlassian MCP**
+>
+> **What works**: all three worker branches were reviewed by the orchestrator and merged into `feature/NC-1-mission-tracker`:
+> - **NC-3 Core** (`7d7a848`): SQLite schema with `UNIQUE(event_id)`; validation that collects every §4.2 error; the reward rule, isolated in `src/rules.js`; the store (single-transaction duplicate check, the DB uniqueness error as a safety net, totals derived by SQL aggregates); the Express `/api` routes; a server with graceful SIGTERM shutdown.
+> - **NC-4 Simulator** (`305cda7`): seeded generator, HTTP client, and a CLI with `--verify` / `--json` and exit codes.
+> - **NC-5 Dashboard** (`c4a7fda`): neon server-rendered pages with a 5 s auto-refresh. Wired into the server in `065b23b`.
+>
+> **Live run** (dev server in a cmux split, `npm run simulate -- --seed 42 --count 120 --verify`): 138 requests sent: 120 accepted, 12 duplicate, 6 rejected, 0 unexpected. **Dashboard verification OK (5 players, 0 mismatches).** The dashboard in the browser split refreshed by itself and showed the same totals; for example, P-01: 18 completed, 5 failed, $20,050, reputation 559.
+>
+> **Tests:** full suite after all merges **172 / 172 pass**. That includes 34 integration tests the orchestrator wrote from spec.md without reading the worker code (`79c3581`); they passed against the real code on the first run.
+>
+> **AI corrections caught during implementation** (docs/ai-decisions.md #12, #15, #16, #17): the dashboard worker found ids wrapping mid-token in its own screenshots and fixed it; the simulator worker found that its CLI silently did nothing when started via a symlinked path and fixed it with a regression test; the core worker found that JS dates roll Feb 30 over to Mar 2 and added a real-date check; the core worker's mutation check showed that the DB-level duplicate guard works even when the code-level check is removed.
+>
+> **Work remaining:** NC-6 testing phase (full run plus the mutation check), NC-7 CI/CD, NC-8 PR and review, NC-9 report.
+>
+> **Blockers:** none. **Changes in scope:** none.
+>
+> **Status:** NC-3, NC-4, NC-5 → **Done**. NC-1 stays In Progress. NC-6 → In Progress.
