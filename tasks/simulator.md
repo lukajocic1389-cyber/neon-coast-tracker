@@ -63,4 +63,87 @@ Put any requests under "Requests to orchestrator".
 - When completely done: append a `## Worker report` section to the end of THIS file, commit it, then run `touch .worker-done` in the worktree root.
 
 ## Requests to orchestrator
-_(none yet)_
+- Nothing blocking. Please confirm two decisions. If you accept them, record them in `docs/ai-decisions.md`, which is not mine to edit.
+  1. **The `expectedCode` inclusion check** in `runPlan`'s `unexpected`. See Worker report, decision 1.
+  2. **Exit code 64 for bad command-line usage.** See Worker report, decision 2.
+
+## Worker report
+
+**Worker:** simulator (Claude Code, Opus 5.5) · **Jira:** NC-4 · **Branch:** `feature/NC-1-simulator`
+
+### What I built
+- `src/sim/prng.js`: mulberry32 with `next`, `int(min,max)` (inclusive), `pick`, `chance`. Integer seeds only; `'42'` and `42`
+  give the same stream. No `Math.random` in `src/sim/` or `scripts/`.
+- `src/sim/generator.js`: `generatePlan({ seed = 42, count = 120 })`. The PRNG is consumed in a fixed order (valid events,
+  then duplicates, then invalid events), so the output is stable.
+  - **Valid:** `SIM-<seed>-<nnnn>`, mission with its catalog crew, cash `100 + 50·int(0,38)`, reputation 5–50, failed with p = 0.25,
+    timestamp `2026-11-20T12:00:00.000Z + i min` (canonical).
+  - **Duplicates:** `structuredClone` of a seeded valid event (the same original may be picked twice), spliced at `int(origIndex+1, len)`.
+  - **Invalid:** a fully valid event plus exactly one defect, cycling through the 6 codes. Ids are `SIM-<seed>-BAD-<nn>` and
+    positions are seeded. `UNKNOWN_MISSION` keeps a real crew name. `CREW_MISMATCH` uses another real crew.
+  - Rejects a seed outside the integers 0–4294967295 (the PRNG is 32-bit, and `1e21` would break the id pattern),
+    and a count outside 0–9999 (the id has 4 digits).
+- `src/sim/expected.js`: `computeExpected(plan)`. Every roster player and every crew starts at 0. Only `kind: 'valid'` entries
+  are applied (BR-1 / BR-2), and a repeated valid `event_id` counts once.
+- `src/sim/client.js`: `runPlan` and `verifyDashboards`.
+  - **`runPlan`** posts sequentially with `content-type: application/json`. It buckets by HTTP status:
+    201 accepted, 200 duplicate, 409 duplicate_conflict, 400 rejected, anything else other.
+  - **`verifyDashboards`** compares only `completed_count`, `failed_count`, `cash_balance` and each `reputation_by_crew` key.
+    A non-200 dashboard becomes a `http_status` mismatch.
+  - **Unreachable server:** a thrown `fetch` becomes `ServerUnreachableError`, carrying the partial `progress` from `runPlan`.
+  - URLs are built with `apiUrl()`, so a trailing slash or base path on `--url` works.
+- `scripts/simulate.js`: CLI with `--url --seed --count --verify --json --help`.
+  - Exports `main(argv, io)` for tests. It runs only when invoked directly (a realpath'd `process.argv[1]` guard, not `import.meta.main`).
+    Without the realpath, a run through a symlinked path printed nothing and exited 0. I reproduced that, fixed it and added a test.
+  - Sets `process.exitCode` instead of calling `process.exit()`.
+  - The text summary includes the expected-totals table and always the note "--verify assumes the database was empty before this run".
+    `--json` prints exactly one JSON object, including on the unreachable and usage-error paths.
+
+### Decisions and deviations (please review; recorded here because `docs/ai-decisions.md` is not mine)
+1. **`unexpected` also flags a 400 whose `errors[].code` does not include the planned `expectedCode`**, with an extra optional
+   `expectedCode` field on the entry. This is an inclusion check, so extra codes from the server are fine. It goes beyond the brief's
+   status-only shape, which can't see a wrong 400. Like every unexpected entry, it does not change the exit code.
+2. **Exit code 64 for bad command-line usage** (for example `--seed abc` or `--count 10000`). The brief defines only 0/1/2, and reusing 1 or 2
+   would blur their meaning. This can easily be changed to another code if you prefer.
+3. **The 201→200 "already sent" hint** appears only when that pattern actually occurs.
+
+### Test output (real, `npm test` in this worktree, local Node v26.10.0)
+```
+ℹ tests 46
+ℹ suites 0
+ℹ pass 46
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 193.475125
+```
+Simulator test files:
+- `sim-prng`: 7 tests.
+- `sim-generator`: 13. Determinism, the 120/12/6 = 138 counts, each duplicate after its original and deep-equal, all 6 invalid codes
+  with exactly one defect (checked by an independent §4.2 checker in the test file), and canonical increasing timestamps.
+- `sim-expected`: 4. These include a hand-computed plan with completed, failed, duplicate and invalid entries.
+- `sim-client`: 10. Against a `node:http` stub on port 0: order, header and body per request, tallies, the 409 / other / non-JSON
+  paths, mismatch detection, and unreachable.
+- `sim-cli`: 9. Exit codes 0/1/2/64, `--json` as one object, a second run that is reported but exits 0, and real child processes:
+  one against a closed port giving exit 2, one started through a symlink.
+- `catalog.test.js`: 3 (pre-existing, not mine).
+
+### Manual run (real process vs. a throwaway `node:http` stub, not the real app; the stub is not committed)
+- Fresh stub, `--seed 42 --count 120 --verify`: 138 sent, 120 accepted, 12 duplicate, 6 rejected, verification OK, exit 0.
+  The 6 invalid events showed as unexpected only because that stub returned a dummy error code.
+- Same seed again: 0 accepted and 132 duplicate, verification still OK (totals unchanged), exit 0, hint shown.
+- A stub with one tampered `cash_balance` gave exit 1 and listed `P-02 cash_balance: expected 17400, actual 17450`.
+  An unreachable port gave exit 2, and `--seed x` gave exit 64.
+- Same seed on a second fresh stub: identical output apart from the url line.
+
+### Known gaps and things I'm unsure about
+- **Not yet run against the real API** (it is being built in parallel). The real core should return the exact §4.2 codes. If its
+  validator stops at the first error, the inclusion check still holds, because each invalid event has only one defect.
+- **The project targets Node 24, but I ran on Node v26.10.0.** I used only APIs available in 24.0: `parseArgs`, `structuredClone`,
+  global `fetch` / `Response`. Not verified on a real Node 24 binary.
+- **`--verify` against a non-empty DB** reports mismatches by design (it assumes an empty DB). The output states this.
+- `git diff --stat feature/NC-1-mission-tracker...HEAD` lists only `scripts/simulate.js`, `src/sim/*.js`,
+  `test/unit/sim-*.test.js`, and this file.
+
+Requests are listed in the brief's "Requests to orchestrator" section above.
