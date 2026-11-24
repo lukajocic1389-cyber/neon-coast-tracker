@@ -1,0 +1,15 @@
+$ gh run view 45439155477 --repo lukajocic1389-cyber/neon-coast-tracker
+
+✓ main CI · 45439155477
+Triggered via push about 39 minutes ago
+
+JOBS
+✓ Unit and integration tests (Node 24) in 14s (ID 138605105810)
+✓ Docker compose smoke test (simulator + restart) in 19s (ID 138605278614)
+
+For more information about a job, try: gh run view --job=<job-id>
+View this run on GitHub: https://github.com/lukajocic1389-cyber/neon-coast-tracker/actions/runs/45439155477
+
+$ gh run view 45439155477 --repo lukajocic1389-cyber/neon-coast-tracker --json headSha,headBranch,event,status,conclusion,createdAt,updatedAt --jq .
+{"conclusion":"success","createdAt":"2026-11-24T16:36:45Z","event":"push","headBranch":"main","headSha":"757012f2ff8ec9f349dea0bd514060f72abae7ad","status":"completed","updatedAt":"2026-11-24T16:37:23Z"}
+captured at 2026-11-24 18:16 CET

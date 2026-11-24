@@ -1,4 +1,4 @@
-# AGENTS.md — instructions for any AI coding agent (Claude Code, Codex, Cursor, Copilot)
+# AGENTS.md — instructions for the AI coding agents working in this repository
 
 The canonical project instructions are in [`CLAUDE.md`](CLAUDE.md). The same rules apply to every agent.
 This file adds how multi-agent work is organised in this repo.
