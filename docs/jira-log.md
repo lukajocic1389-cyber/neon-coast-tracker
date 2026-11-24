@@ -154,3 +154,21 @@ Jira: https://lukajocic1389.atlassian.net/browse/NC-1
 > **Final state:** NC-2 … NC-9 are Done. **NC-1 stays In Progress until the human approves at GATE 3** and adds the Jira screenshots to the report. Open items: (1) the human to confirm who clicked merge on PR #2; (2) the decision on PR #3.
 >
 > **Status:** NC-9 → **Done**. NC-1 unchanged (In Progress).
+
+## 2026-11-24 18:31 CET: GATE 3 sign-off and close (agent, via MCP), comment id 10007
+**Transitions:** NC-1 In Progress → **Done**
+**Attachment:** `final-report-FINAL-2026-11-24.pdf` (attachment id 10004, 3,115,416 bytes, identical to `docs/final-report.pdf` on `main`). The earlier `final-report.pdf` (id 10003) is kept.
+
+> **[GATE 3 sign-off and close] posted by the Claude Code orchestrator agent via the Atlassian MCP**
+>
+> **Sign-off:** the human read the final report and gave the GATE 3 sign-off: *"I have read the report. GATE 3 sign-off given."* The human also approved the report's "Human oversight" section, and confirmed merging PR #1 (17:22) and PR #2 (17:36) in the GitHub web UI.
+>
+> **Final report.** `final-report-FINAL-2026-11-24.pdf` (18 pages) is now attached to this issue and is identical to `docs/final-report.pdf` on `main`. Compared with the earlier `final-report.pdf` (16 pages), it adds: the Jira screenshots; the CI evidence from `gh run view`; the "Human oversight" section; the corrected PR #1 timing (merged 17:22:12, 20 s before the AI review comment); removal of mentions of tools not used in this project (approved by the human and made as new commits only). The earlier attachment is kept, not deleted.
+>
+> **Merged:** PR #3 (report and docs only) was merged by the agent at 18:29 CET as a normal merge commit (`dd0910a`), pinned to the reviewed head commit, with the human's authorisation.
+>
+> **CI on `main` after the merge:** success, https://github.com/lukajocic1389-cyber/neon-coast-tracker/actions/runs/45449192616
+>
+> **Final state:** all evidence is linked on this issue, and all sub-tasks are Done.
+>
+> **Status:** NC-1 In Progress → **Done**.
