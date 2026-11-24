@@ -43,7 +43,7 @@ interview's live change: one reward per player per mission. It is different from
 
 | Actor | Role in this project |
 |---|---|
-| **Human** (repository owner) | Wrote the orchestration instructions. Chose the GitHub account. Rejected using the existing Jira project and **created Jira project NC by hand** (the Atlassian MCP cannot create projects). Answered all 19 planning decisions at GATE 1, with changes to D13 and D15. Replaced CodeRabbit with an independent AI reviewer. Decided on all 5 review findings at GATE 2 and added the extra mutation re-run. **Merged both pull requests in the GitHub web UI**: PR #1 at 17:22 and PR #2 at 17:36 (see §11). Gives the final sign-off at GATE 3. |
+| **Human** (repository owner) | Wrote the orchestration instructions. Chose the GitHub account. Rejected using the existing Jira project and **created Jira project NC by hand** (the Atlassian MCP cannot create projects). Answered all 19 planning decisions at GATE 1, with changes to D13 and D15. Chose the review method: an independent AI reviewer. Decided on all 5 review findings at GATE 2 and added the extra mutation re-run. **Merged both pull requests in the GitHub web UI**: PR #1 at 17:22 and PR #2 at 17:36 (see §11). Gives the final sign-off at GATE 3. |
 | **Orchestrator agent** (Claude Code, this session) | Read the brief; drafted intent/spec/plan, CLAUDE.md, AGENTS.md and the Story; created the Jira issues and posted every phase update through the Atlassian MCP; wrote the scaffold and the three worker briefs; reviewed and merged every worker branch; wired the app; wrote the integration tests **from the spec only**; ran the mutation checks; built the CI, Docker and README; created the repo and PRs; verified a fresh clone; applied the review fixes; wrote this report. |
 | **3 worker agents** (Claude Code, each in its own git worktree and cmux workspace) | `core` (DB, validation, rules, store, API, server), `simulator`, `dashboard`. Each worked only on its own files, from a written brief, with unit tests and a written report. |
 | **Independent reviewer agent** (fresh Claude subagent) | Reviewed the PR diff against `spec.md` and the brief, without having seen the build. Posted 5 findings as a PR comment labelled as an AI review. |
@@ -67,7 +67,7 @@ What the human did in this project, and only that:
 Other recorded human actions:
 - Chose the GitHub account.
 - Created the Jira project NC by hand.
-- Replaced CodeRabbit with an independent AI reviewer.
+- Chose the review method: an independent AI reviewer for the pull request.
 - Confirmed who merged each PR.
 
 This report does **not** claim any human code review, test run or CI check. The code review, test and CI evidence in this report come from the
@@ -133,7 +133,6 @@ Captured by a separate AI assistant in the human's signed-in browser, about 18:0
   - Review R4: the reviewer proposed exit 1 for `--strict`; I used a separate exit code 3.
   - The Jira project: the agent offered the existing `KAN`; the human chose a dedicated `NC`.
 - **Rejected:**
-  - Using CodeRabbit (the human chose a fresh AI reviewer instead).
   - Guessing the unfilled `<GITHUB_USER>`/`<KEY>` placeholders in the instructions. The agent stopped and asked.
 
 ## 5. Architecture
@@ -199,7 +198,7 @@ Captured by a separate AI assistant in the human's signed-in browser, about 18:0
 
 | Caught by | What was wrong | Fix |
 |---|---|---|
-| Advisor model (before GATE 1) | Ambiguous simulator counts; a missing contract between the core and dashboard workers; mixed timestamp precision would break ordering; Node 24 support unverified; **two statements in my own decision log were not backed by facts** (an invented reason for skipping CodeRabbit, and naming the human from git config) | All 9 fixed before the human saw the plan |
+| Advisor model (before GATE 1) | Ambiguous simulator counts; a missing contract between the core and dashboard workers; mixed timestamp precision would break ordering; Node 24 support unverified; **two statements in my own decision log were not backed by facts** (an invented reason for one of the human's decisions, and naming the human from git config) | All 9 fixed before the human saw the plan |
 | Dashboard worker (own screenshots) | Event ids and crew names wrapped mid-token | `7e57cec` |
 | Simulator worker (own manual test) | Started through a symlinked path, the CLI silently did nothing and exited 0 | Realpath guard + regression test (`9fc0373`) |
 | Core worker | JavaScript rolls `2026-02-30` over to March 2, so "real date" needs a round-trip check | Implemented and tested |
@@ -307,9 +306,8 @@ npm run simulate -- --url http://localhost:3000 --seed 42 --count 120 --verify
    The last log commit (`81f6845`) was pushed just after that merge, so it reaches `main` with the report in PR #3.
 3. The agent kept **drafting the Phase 1 documents locally** after being told to stop if the Jira project could not be created. No Jira, GitHub or git writes were made.
    The human accepted this afterwards (decision #6).
-4. **CodeRabbit was replaced** by an independent AI subagent review (the human's decision).
-5. The board has no "In Review" column, so the status history is To Do / In Progress / Done.
-6. **Two earlier Jira comments overstated evidence** (the "concurrent" test; the CI "volume" check). They were left as posted, and a correction comment was added.
+4. The board has no "In Review" column, so the status history is To Do / In Progress / Done.
+5. **Two earlier Jira comments overstated evidence** (the "concurrent" test; the CI "volume" check). They were left as posted, and a correction comment was added.
 
 ## 12. Challenges
 
