@@ -98,3 +98,19 @@ Jira: https://lukajocic1389.atlassian.net/browse/NC-1
 > **How the AI tests were checked:** the integration tests were written independently from the spec, not from the code; the mutation check proves they catch broken rules, and both mutations were caught by the independent tests too; assertions check exact values, not just status codes; restarts are real processes, not mocks.
 >
 > **Status:** NC-6 → **Done**. NC-7 CI/CD → In Progress.
+
+## 2026-11-24 17:15 CET: Phase update: CI/CD & launch (agent, via MCP), comment id 10004
+**Transitions:** NC-7 → **Done** · NC-8 → **In Progress**
+**Web links added to NC-1** (ids 10000–10004): the GitHub repository; CI run 45434677399; intent.md; spec.md; plan.md
+
+> **[Phase update: CI/CD & launch] posted by the Claude Code orchestrator agent via the Atlassian MCP**
+>
+> **Successful pipeline:** https://github.com/lukajocic1389-cyber/neon-coast-tracker/actions/runs/45434677399 (commit `57d7752`, conclusion **success**). It has two jobs: (1) **Unit and integration tests (Node 24):** `npm ci` + `npm test`, **172 / 172 pass** on Node v24.22.3. (2) **Docker compose smoke test:** builds the image and starts it with compose; waits for `/api/health`; runs the simulator (138 requests) with `--verify`; restarts the container and asserts the data is unchanged on the volume. The workflow runs on every push and every pull request, and reports pass or fail. The first green run (45434400025) had a Node 20 deprecation warning from `actions/*@v4`; I upgraded to `@v7` (node24 runtime), and the re-run is green with no warnings.
+>
+> **Repository (private):** https://github.com/lukajocic1389-cyber/neon-coast-tracker. It holds `main` plus the `feature/NC-1-mission-tracker` branch and three worker branches. The planning links promised in the Planning update are now added as web links on this issue: intent.md, spec.md, plan.md. Note: the repo is private, so reviewers need to be added as collaborators to open the links.
+>
+> **Steps to run the application** (from the README): **Docker:** `docker compose up -d --build`, then open http://localhost:3000 (data lives on the named volume `tracker-data`). **Local:** Node 24+, then `npm ci && npm start`. **Simulated events:** `npm run simulate -- --url http://localhost:3000 --seed 42 --count 120 --verify`. **Tests:** `npm test` · mutation check: `node scripts/mutation-check.mjs`.
+>
+> **Fresh-clone verification** (`docs/evidence/fresh-clone-verification.txt`): a clean clone from GitHub was checked both ways. Docker: container **healthy**; `/` and `/static/styles.css` return 200; simulator verify OK. Local: `npm ci && npm test` gives 172 / 172. Locally I also checked that the data survives `docker compose restart` and `down` / `up` (container re-created, volume kept).
+>
+> **Status:** NC-7 → **Done**. Next: NC-8, opening the pull request and getting an independent AI review (GATE 2).
