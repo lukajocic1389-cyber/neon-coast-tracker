@@ -62,7 +62,7 @@ Put any requests under "Requests to orchestrator".
 - When completely done: append a `## Worker report` section to the end of THIS file, commit it, then run `touch .worker-done` in the worktree root.
 
 ## Requests to orchestrator
-_(none yet)_
+- Please record the dashboard judgment calls listed in the Worker report below in `docs/ai-decisions.md`. I am not allowed to edit that file.
 
 ## Worker report
 
@@ -71,10 +71,11 @@ _(none yet)_
 ### What was built
 - `src/dashboard/render.js`: pure functions `escapeHtml`, `formatCash`, `formatInt`, `formatTimestamp`, `renderIndex`,
   `renderPlayer` and `renderNotFound`. Every page has the doctype, `lang="en"`, the viewport meta, `<meta http-equiv="refresh" content="5">`,
-  `/static/styles.css` and a title ending in "· Neon Coast". The footer reads "Last updated <ISO UTC>" plus the
+  `/static/styles.css` and a title ending in "· Neon Coast". The footer reads "Last updated <ISO UTC>" (contiguous plain text) plus the
   "Fictional companion app…" line. Every dynamic value is escaped, in text, attributes and `<title>`. Player links use
   `encodeURIComponent` and are then escaped.
-- The test hooks match the brief exactly: `completed-count`, `failed-count`, `cash-balance` and `total-reputation`, each with a raw `data-value`;
+- The test hooks match the brief exactly. The stat hooks are bare `<span data-testid="…" data-value="…">` elements inside a styled wrapper, e.g.
+  `<span data-testid="cash-balance" data-value="1450">$1,450</span>`, and a test asserts that exact string. The hooks are: `completed-count`, `failed-count`, `cash-balance` and `total-reputation`, each with a raw `data-value`;
   `rep-crew` with `data-crew` and `data-value`; `history-row` with `data-event-id` and `data-result`; and `player-row` with `data-player-id`. Each of the
   four stat hooks appears exactly once, on the player page only. The index rows use plain cells and do not reuse them. The "No missions yet"
   empty state is a `<p>`, not a `history-row`, so row counts stay correct.
@@ -84,10 +85,10 @@ _(none yet)_
   either function is missing.
 - `public/styles.css`: the dark neon theme. It has a navy/black background, cyan/magenta/violet/green accents and glowing tiles and
   headings, with system fonts only and no `url(`, `@import` or fonts. Tables are inside a horizontal-scroll wrapper. Tiles wrap
-  (4 → 2 → 1 columns). There are no animations, and a `prefers-reduced-motion` guard is included anyway. `color-scheme: dark` prevents a white flash on refresh.
+  (auto-fit at ≥ 12rem each; 2 columns under 40rem, 1 under 22rem). There are no animations, and a `prefers-reduced-motion` guard is included anyway. `color-scheme: dark` prevents a white flash on refresh.
   Failed rows have a text badge "FAILED" (not colour alone), a magenta left edge and muted amounts.
 - **Contrast** was computed with the WCAG formula for every text colour against the page, panel, alternate-row, hover and failed-badge
-  backgrounds. The lowest value is magenta on the failed-badge tint at **5.80:1**. Body text is **15.4–17.2:1**, and muted text is ≥ 7.2:1.
+  backgrounds. The lowest value is magenta on the failed-badge tint at **5.80:1**. Body text is **15.4–17.2:1**, and muted text is ≥ 7.1:1 (7.16 at its lowest).
 
 ### Judgment calls (please log in `docs/ai-decisions.md` if you agree; I may not edit it)
 1. **`renderNotFound(playerId, { now } = {})`**: the brief's signature has no `now`, but "every page" needs a deterministic
@@ -97,7 +98,7 @@ _(none yet)_
 3. **Crew rows** iterate `CREWS` from `src/catalog.js` (0 if missing) and then any extra crews in the data, so "all crews" holds even
    if the store omits one. The bars are relative to the highest crew value, and an all-zero max is guarded.
 4. The view shows `cash_awarded` and `reputation_awarded` **as given**. It does not re-implement the failed → 0 rule. That rule belongs to the core.
-5. Footer text: "Last updated <ISO> · refreshes every 5 seconds". The ISO string is inside a `<time>` element.
+5. Footer text: "Last updated <ISO> · refreshes every 5 seconds", with the ISO string as plain contiguous text so that a `Last updated <ISO>` substring check works.
 
 ### Test output (real, `npm test` in this worktree, Node **v26.10.0** locally, not 24)
 ```
@@ -116,7 +117,8 @@ the router not answering other paths, and the constructor guard.
 
 ### Visual check: yes, I actually looked
 I ran a throwaway Express preview (stub data, `/static` served from `public/`) from the session scratchpad, outside the repo, and
-viewed it with Playwright screenshots. I checked the player page at 1280 px and 390 px, the index at 1100 px, the empty player (P-05) and the 404.
+viewed it with Playwright screenshots. I checked the player page at 1280 px and 390 px, the index at 1100 px, the empty player (P-05) and the 404. I did not look at the intermediate
+  (~800 px, 3+1 tile) layout. The screenshots predate `f146ce2`, which only changed the footer `<time>` element and added a nested hook span with no styling of its own.
 - The first look showed event ids, mission ids and crew names breaking mid-token. This was fixed in `7e57cec` (only the mission title may wrap now).
 - At 390 px I measured the DOM: document width = client width (375 + 15 px scrollbar), 16 px gutters, and no element outside `.table-wrap`
   overflows. Only the history table scrolls horizontally, as intended.
@@ -129,7 +131,7 @@ viewed it with Playwright screenshots. I checked the player page at 1280 px and 
 adds `tasks/dashboard.md` itself, as the brief requires. No dependencies were added, and `src/store.js` and `src/app.js` are not imported.
 
 ### Commits
-`82ed232` render functions + tests · `fb34d3a` router + tests · `d55175c` stylesheet · `7e57cec` CSS wrap fix · (this report)
+`82ed232` render functions + tests · `fb34d3a` router + tests · `d55175c` stylesheet · `7e57cec` CSS wrap fix · `597a7ca` report · `f146ce2` footer and stat-hook markup aligned with the brief · (this report correction)
 
 ### Known gaps / notes for integration
 - The app must serve `public/` at `/static` (per `tasks/core.md`, `app.use('/static', express.static(...))`), or the pages render unstyled.
