@@ -45,3 +45,12 @@ The agent proposed every option and recommendation below. The human answered: *"
 
 ### Jira mapping
 NC-1 Story · NC-2 Planning · NC-3 Core · NC-4 Simulator · NC-5 Dashboard · NC-6 Tests and mutation check · NC-7 CI/CD · NC-8 PR and AI review · NC-9 Final report
+
+### Implementation (Phase 2)
+
+| # | Date | Phase | Suggestion (by) | Outcome | Why | Decided by |
+|---|---|---|---|---|---|---|
+| 9 | 2026-11-24 | Impl | Run 3 worker Claude Code sessions in parallel, each in its own git worktree and cmux workspace, started with `--permission-mode acceptEdits`. File edits are auto-accepted inside the worktree; other shell commands still follow `.claude/settings.json` (agent) | Accepted | Visible, isolated parallel work. Not `--dangerously-skip-permissions`, so a permission prompt would stop a worker instead of letting it act | Agent (within the human's "max 3 workers, own worktree" rule) |
+| 10 | 2026-11-24 | Impl | The orchestrator writes the Phase 4 integration tests itself, **from spec.md only, without reading the worker code**, while the workers build (agent) | Accepted | Avoids the AI implementing code and then writing tests that just mirror that implementation. The tests are a second, independent reading of the spec | Agent |
+| 11 | 2026-11-24 | Impl | The dashboard worker made 5 judgment calls (see `tasks/dashboard.md` → Worker report): optional `now` on `renderNotFound`; total reputation = sum of crews on the player page; crew rows iterate the catalog `CREWS`; the view shows awarded values without re-applying rules; footer wording (worker) | **Accepted, all 5** | Each is backward compatible with the spec, and #4 keeps the reward rule in exactly one place (`rules.js`) | Agent (orchestrator review) |
+| 12 | 2026-11-24 | Impl | The dashboard worker's own visual check found ids and crew names breaking mid-token and fixed it (`7e57cec`). It also found a markup mismatch with the brief's hook format and fixed it (`f146ce2`) (worker self-correction) | Accepted | A real AI self-correction, caught by looking at screenshots rather than by tests | Worker; verified by orchestrator diff review |
