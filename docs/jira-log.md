@@ -114,3 +114,25 @@ Jira: https://lukajocic1389.atlassian.net/browse/NC-1
 > **Fresh-clone verification** (`docs/evidence/fresh-clone-verification.txt`): a clean clone from GitHub was checked both ways. Docker: container **healthy**; `/` and `/static/styles.css` return 200; simulator verify OK. Local: `npm ci && npm test` gives 172 / 172. Locally I also checked that the data survives `docker compose restart` and `down` / `up` (container re-created, volume kept).
 >
 > **Status:** NC-7 → **Done**. Next: NC-8, opening the pull request and getting an independent AI review (GATE 2).
+
+## 2026-11-24 17:53 CET: Phase update: Review (agent, via MCP), comment id 10005
+**Transitions:** NC-8 → **Done** · NC-9 → **In Progress**
+
+> **[Phase update: Review] posted by the Claude Code orchestrator agent via the Atlassian MCP**
+>
+> **Pull requests:** **PR #1** (the feature): https://github.com/lukajocic1389-cyber/neon-coast-tracker/pull/1 · **PR #2** (the review fixes): https://github.com/lukajocic1389-cyber/neon-coast-tracker/pull/2
+>
+> **Independent AI review:** https://github.com/lukajocic1389-cyber/neon-coast-tracker/pull/1#issuecomment-7137564248. A fresh Claude subagent that took no part in building the code reviewed the PR diff against spec.md and the brief, and posted its findings as a PR comment labelled as an AI review. CodeRabbit was not used; the human chose this replacement. Verdict: approve, with 5 findings (3 low, 2 nit). The agent reproduced or confirmed each one. **The human accepted all five at GATE 2.**
+> - **R1:** a malformed URL encoding gave 500 instead of 400. Fixed in `1138b9c`; the regression test fails on the old code.
+> - **R2:** the CI volume check used `restart`, which would pass even without the named volume. Fixed in `fa6bd1f` (`down` + `up`). Proven: without the volume, the old step passes and the new step fails (cash 7100 → 0).
+> - **R3:** the "concurrent" duplicate test could not race. Added a **two-server-process race test** (`1a3a1d2`). At the human's request the reviewer's mutation (no transaction, no UNIQUE) was repeated: the new test **fails 5 of 5 runs**. It is now mutation M4.
+> - **R4:** the CI Docker job could not fail on wrong status codes. Added simulator `--strict` (exit 3), used in CI (`cf0d39a`).
+> - **R5:** two processes on a new DB crashed in 4 of 5 trials. Fixed (`6b78988`): 0 of 5 after.
+>
+> **Results after the fixes:** 178 / 178 tests. Mutation check: M1, M2 and M4 red and M3 green, as expected. CI green on the fixes commit and on `main` (https://github.com/lukajocic1389-cyber/neon-coast-tracker/actions/runs/45439155477).
+>
+> **Process deviation (recorded truthfully):** PR #1 was **merged by the human at 17:22, before the GATE 2 fixes; the fixes followed in PR #2.** PR #2 was merged at 17:36 via GitHub by the account `lukajocic1389-cyber`. The agent did not run either merge; who merged PR #2 is to be confirmed by the human. `main` now equals the reviewed and tested code.
+>
+> **Correction to earlier comments on this issue.** Two claims were stronger than the evidence, as the reviewer found: (1) the Implementation and Testing updates listed "10 concurrent identical POSTs → 1 accepted" as race evidence, but within one process those requests run one after another; real race evidence now comes from the two-process test above. (2) The CI/CD update said the CI step "asserts the data is unchanged on the volume"; that step used `restart`, which did not prove the named volume, and it now uses `down` + `up`. The earlier comments are left unchanged so the history stays honest.
+>
+> **Status:** NC-8 → **Done**. NC-9 Final report → In Progress.
