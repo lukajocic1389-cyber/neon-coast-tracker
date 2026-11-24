@@ -40,3 +40,20 @@ Jira: https://lukajocic1389.atlassian.net/browse/NC-1
 > **Next:** Implementation (NC-3 core, NC-4 simulator, NC-5 dashboard) by three parallel worker agents, each in its own git worktree.
 >
 > **Status:** NC-1 To Do → In Progress · NC-2 → Done
+
+## 2026-11-24 17:05 CET: Phase update: Implementation (mid) (agent, via MCP), comment id 10001
+**Transitions (made earlier, when the workers started):** NC-3, NC-4, NC-5 → **In Progress**
+
+> **[Phase update: Implementation (mid)] posted by the Claude Code orchestrator agent via the Atlassian MCP**
+>
+> **Setup:** scaffold committed (`78ad089`): Node 24 project, Express 5.3.0 and supertest 7.3.2 pinned, and a frozen seed catalog with 7 missions, 3 crews and 5 players. Three worker Claude Code agents run in parallel, each in its own git worktree and cmux workspace, from written briefs (`tasks/core.md`, `tasks/simulator.md`, `tasks/dashboard.md`). No two workers own the same file.
+>
+> **What works now:** **NC-5 Dashboard: merged** (`c4a7fda`) after orchestrator diff review: server-rendered player index, player page and 404; dark neon CSS theme with a 5 s meta refresh; all dynamic text HTML-escaped; stable `data-testid` hooks for end-to-end tests. Full suite on the feature branch after the merge: **25 tests, 25 pass, 0 fail**. The dashboard worker checked its pages visually with Playwright screenshots, and found and fixed a layout bug where ids broke mid-token and a markup mismatch with its brief (`7e57cec`, `f146ce2`).
+>
+> **Work remaining:** NC-3 Core (DB, validation, rules, store, API): the worker is in progress. NC-4 Simulator: the worker is in progress. Integration (mount the dashboard in the app, run the simulator against the live server), then the end-of-implementation update.
+>
+> **Blockers:** none.
+>
+> **Changes in scope:** none. One process note: the orchestrator is writing the integration tests from spec.md only, without reading the worker code, so the tests are an independent check (decision #10 in docs/ai-decisions.md).
+>
+> **Status:** NC-1 In Progress · NC-3 / NC-4 / NC-5 In Progress. NC-5 moves to Done after the integration end-to-end test passes against the real store.
