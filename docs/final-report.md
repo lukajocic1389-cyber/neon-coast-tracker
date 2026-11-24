@@ -43,7 +43,7 @@ interview's live change: one reward per player per mission. It is different from
 
 | Actor | Role in this project |
 |---|---|
-| **Human** (repository owner) | Wrote the orchestration instructions. Chose the GitHub account. Rejected using the existing Jira project and **created Jira project NC by hand** (the Atlassian MCP cannot create projects). Answered all 19 planning decisions at GATE 1, with changes to D13 and D15. Replaced CodeRabbit with an independent AI reviewer. Decided on all 5 review findings at GATE 2 and added the extra mutation re-run. **Merged PR #1 in the GitHub web UI** (see §11). Decides on Done at GATE 3. |
+| **Human** (repository owner) | Wrote the orchestration instructions. Chose the GitHub account. Rejected using the existing Jira project and **created Jira project NC by hand** (the Atlassian MCP cannot create projects). Answered all 19 planning decisions at GATE 1, with changes to D13 and D15. Replaced CodeRabbit with an independent AI reviewer. Decided on all 5 review findings at GATE 2 and added the extra mutation re-run. **Merged both pull requests in the GitHub web UI**: PR #1 at 17:22 and PR #2 at 17:36 (see §11). Gives the final sign-off at GATE 3. |
 | **Orchestrator agent** (Claude Code, this session) | Read the brief; drafted intent/spec/plan, CLAUDE.md, AGENTS.md and the Story; created the Jira issues and posted every phase update through the Atlassian MCP; wrote the scaffold and the three worker briefs; reviewed and merged every worker branch; wired the app; wrote the integration tests **from the spec only**; ran the mutation checks; built the CI, Docker and README; created the repo and PRs; verified a fresh clone; applied the review fixes; wrote this report. |
 | **3 worker agents** (Claude Code, each in its own git worktree and cmux workspace) | `core` (DB, validation, rules, store, API, server), `simulator`, `dashboard`. Each worked only on its own files, from a written brief, with unit tests and a written report. |
 | **Independent reviewer agent** (fresh Claude subagent) | Reviewed the PR diff against `spec.md` and the brief, without having seen the build. Posted 5 findings as a PR comment labelled as an AI review. |
@@ -51,6 +51,27 @@ interview's live change: one reward per player per mission. It is different from
 
 Nothing in this report or in the repo claims a human code review, test run or CI result that did not happen. Every commit was made by an agent
 on the human's git identity, with the `Co-Authored-By` trailer.
+
+## Human oversight
+
+What the human did in this project, and only that:
+
+- **Approved the Story and decisions D1–D19 at GATE 1.** The human accepted all recommendations, with two notes: D13, use sub-tasks only if the
+  Subtask type exists in NC; D15, add a dark neon theme and auto-refresh. The agent then created the Story from those answers.
+- **Decided on review findings R1–R5 at GATE 2, and accepted all five.** The human added two requirements: repeat the reviewer's mutation
+  against the new race test, and log R1–R5 with finder, decision and fix commit.
+- **Merged the pull requests in the GitHub web UI.** PR #1 at 17:22, **before the review fixes**; those fixes then went into PR #2. PR #2 at 17:36.
+  The CI runs for PR #2's head commit had completed successfully before that merge.
+- **Gave the final sign-off at GATE 3 after reading this report.**
+
+Other recorded human actions:
+- Chose the GitHub account.
+- Created the Jira project NC by hand.
+- Replaced CodeRabbit with an independent AI reviewer.
+- Confirmed who merged each PR.
+
+This report does **not** claim any human code review, test run or CI check. The code review, test and CI evidence in this report come from the
+AI agents, the independent AI reviewer and GitHub Actions.
 
 ## 3. Jira: structure, updates and status history
 
@@ -70,15 +91,28 @@ about an "In Review" column at GATE 1 (D14) but did not add one.
 | 17:11 | Testing: runs, mutation check, how the AI tests were checked | NC-6 → Done · NC-7 → In Progress |
 | 17:15 | CI/CD & launch: pipeline link, run steps, fresh-clone check. Web links added for the repo, CI run, intent, spec and plan | NC-7 → Done · NC-8 → In Progress |
 | 17:53 | Review: findings and fixes, process deviation, **correction of two earlier overclaims** | NC-8 → Done · NC-9 → In Progress |
-| (Phase 6) | Completion: report linked | NC-9 → Done. NC-1 is moved to Done only after GATE 3 |
+| 17:58 | Completion: report linked (PDF attached), acceptance criteria, limitations, final state | NC-9 → Done. NC-1 is moved to Done only after GATE 3 |
 
-[SCREENSHOT: Jira NC-1 overview (description, sub-tasks, web links)]
+**Screenshots from Jira.** All five were captured by a separate AI assistant in the human's signed-in browser at about **18:06 on 2026-11-24**,
+while NC-1 was still **In Progress**, so they show the state before the GATE 3 sign-off. Two things to note when reading them:
+- **Jira attributes every action to the human's account ("Luka Jocić").** The Atlassian MCP acts with the human's credentials, so issue creation,
+  comments, transitions and links made by the agent appear under the human's name. Each phase comment carries its own label,
+  "posted by the Claude Code orchestrator agent via the Atlassian MCP".
+- The **"Comments summary"** panel is Jira's own built-in AI feature, not part of this project's work.
 
-[SCREENSHOT: Jira NC-1 comments (phase updates)]
+<p><img src="img/jira-nc1-overview.png" alt="Jira NC-1 overview" width="49%"> <img src="img/jira-nc1-subtasks-links.png" alt="Jira NC-1 sub-tasks, attachment and web links" width="49%"></p>
 
-[SCREENSHOT: Jira NC-1 History tab (status transitions)]
+*Jira NC-1 overview. Left: the Story description and details, status In Progress. Right: the attached `final-report.pdf`, sub-tasks NC-2…NC-9 all
+Done (100%), and the 9 web links. Captured by a separate AI assistant in the human's signed-in browser, about 18:06 on 2026-11-24, while NC-1 was still In Progress.*
 
-[SCREENSHOT: Jira board with NC-1…NC-9]
+<p><img src="img/jira-nc1-comments.png" alt="Jira NC-1 comments" width="49%"> <img src="img/jira-nc1-history.png" alt="Jira NC-1 history" width="49%"></p>
+
+*Left: NC-1 comments, with the Completion phase update at the top. Right: the NC-1 History tab (web links, the attachment, To Do → In Progress, creation).
+Captured by a separate AI assistant in the human's signed-in browser, about 18:06 on 2026-11-24, while NC-1 was still In Progress.*
+
+![Jira board](img/jira-board.png)
+
+*The NC board: NC-1 In Progress with sub-tasks 8/8. Captured by a separate AI assistant in the human's signed-in browser, about 18:06 on 2026-11-24, while NC-1 was still In Progress.*
 
 ## 4. Planning artifacts and decisions
 
@@ -239,7 +273,11 @@ How to run, the mapping to the PDF test groups, and all raw output are in [`docs
 | [45438843508](https://github.com/lukajocic1389-cyber/neon-coast-tracker/actions/runs/45438843508) | `fe1611c` PR #2 with all review fixes | success |
 | [45439155477](https://github.com/lukajocic1389-cyber/neon-coast-tracker/actions/runs/45439155477) | `757012f` on `main` | success |
 
-[SCREENSHOT: GitHub Actions run 45439155477 (both jobs green)]
+![gh run view 45439155477 (CLI output)](img/ci-run-main-cli.png)
+
+*CLI output, not a browser screenshot: `gh run view 45439155477` for the CI run on `main` (commit `757012f`), captured by the orchestrator agent at
+18:16 CET on 2026-11-24 and rendered as an image. The raw text is in [`docs/evidence/ci-run-45439155477.txt`](evidence/ci-run-45439155477.txt).
+The Docker job is still named "(simulator + restart)". The name predates review fix R2; the step now re-creates the container with `down` + `up`.*
 
 ## 10. Deployment and startup
 
@@ -261,10 +299,12 @@ npm run simulate -- --url http://localhost:3000 --seed 42 --count 120 --verify
 ## 11. Process deviations (recorded as they happened)
 
 1. **PR #1 was merged by the human at 17:22, before the GATE 2 fixes; fixes followed in PR #2.** The plan was: review → GATE 2 → apply fixes → merge.
-   The human merged PR #1 in the GitHub web UI while the review was being discussed. The agent noticed when PR #1 showed as closed while pushing the fixes.
+   The human merged PR #1 in the GitHub web UI at 17:22:12, which according to GitHub's timestamps was 20 seconds *before* the independent AI review
+   comment was posted (17:22:32), and so before GATE 2. The agent noticed when PR #1 showed as closed while pushing the fixes.
    It checked that neither it nor the reviewer had run a merge, then stopped and asked. The fixes reached `main` through PR #2, and the history was not rewritten.
-2. **PR #2 was merged at 17:36 via GitHub** by the account `lukajocic1389-cyber`, right after the human authorised the merge. The agent did not run that
-   merge: it was waiting for GitHub to sync the PR head. The merged commit is the reviewed and tested `fe1611c`, with green CI. *Who clicked merge: to be confirmed by the human at GATE 3.*
+2. **PR #2 was merged by the human at 17:36 in the GitHub web UI** (the human confirmed this at GATE 3), right after authorising the merge. The agent
+   had planned to merge it but was still waiting for GitHub to sync the PR head. The merged commit is the reviewed and tested `fe1611c`, with green CI.
+   The last log commit (`81f6845`) was pushed just after that merge, so it reaches `main` with the report in PR #3.
 3. The agent kept **drafting the Phase 1 documents locally** after being told to stop if the Jira project could not be created. No Jira, GitHub or git writes were made.
    The human accepted this afterwards (decision #6).
 4. **CodeRabbit was replaced** by an independent AI subagent review (the human's decision).
