@@ -63,7 +63,9 @@ Put any requests under "Requests to orchestrator".
 - When completely done: append a `## Worker report` section to the end of THIS file, commit it, then run `touch .worker-done` in the worktree root.
 
 ## Requests to orchestrator
-_(none yet)_
+- Nothing blocking. Please confirm two decisions. If you accept them, record them in `docs/ai-decisions.md`, which is not mine to edit.
+  1. **The `expectedCode` inclusion check** in `runPlan`'s `unexpected`. See Worker report, decision 1.
+  2. **Exit code 64 for bad command-line usage.** See Worker report, decision 2.
 
 ## Worker report
 
@@ -79,7 +81,8 @@ _(none yet)_
   - **Duplicates:** `structuredClone` of a seeded valid event (the same original may be picked twice), spliced at `int(origIndex+1, len)`.
   - **Invalid:** a fully valid event plus exactly one defect, cycling through the 6 codes. Ids are `SIM-<seed>-BAD-<nn>` and
     positions are seeded. `UNKNOWN_MISSION` keeps a real crew name. `CREW_MISMATCH` uses another real crew.
-  - Rejects a non-integer or negative seed, and a count outside 0–9999 (the id has 4 digits).
+  - Rejects a seed outside the integers 0–4294967295 (the PRNG is 32-bit, and `1e21` would break the id pattern),
+    and a count outside 0–9999 (the id has 4 digits).
 - `src/sim/expected.js`: `computeExpected(plan)`. Every roster player and every crew starts at 0. Only `kind: 'valid'` entries
   are applied (BR-1 / BR-2), and a repeated valid `event_id` counts once.
 - `src/sim/client.js`: `runPlan` and `verifyDashboards`.
@@ -90,7 +93,8 @@ _(none yet)_
   - **Unreachable server:** a thrown `fetch` becomes `ServerUnreachableError`, carrying the partial `progress` from `runPlan`.
   - URLs are built with `apiUrl()`, so a trailing slash or base path on `--url` works.
 - `scripts/simulate.js`: CLI with `--url --seed --count --verify --json --help`.
-  - Exports `main(argv, io)` for tests. It runs only when invoked directly (`process.argv[1]` guard, not `import.meta.main`).
+  - Exports `main(argv, io)` for tests. It runs only when invoked directly (a realpath'd `process.argv[1]` guard, not `import.meta.main`).
+    Without the realpath, a run through a symlinked path printed nothing and exited 0. I reproduced that, fixed it and added a test.
   - Sets `process.exitCode` instead of calling `process.exit()`.
   - The text summary includes the expected-totals table and always the note "--verify assumes the database was empty before this run".
     `--json` prints exactly one JSON object, including on the unreachable and usage-error paths.
@@ -105,14 +109,14 @@ _(none yet)_
 
 ### Test output (real, `npm test` in this worktree, local Node v26.10.0)
 ```
-ℹ tests 45
+ℹ tests 46
 ℹ suites 0
-ℹ pass 45
+ℹ pass 46
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 183.214084
+ℹ duration_ms 193.475125
 ```
 Simulator test files:
 - `sim-prng`: 7 tests.
@@ -121,8 +125,9 @@ Simulator test files:
 - `sim-expected`: 4. These include a hand-computed plan with completed, failed, duplicate and invalid entries.
 - `sim-client`: 10. Against a `node:http` stub on port 0: order, header and body per request, tallies, the 409 / other / non-JSON
   paths, mismatch detection, and unreachable.
-- `sim-cli`: 8. Exit codes 0/1/2/64, `--json` as one object, a second run that is reported but exits 0, and a real child process
-  against a closed port giving exit 2.
+- `sim-cli`: 9. Exit codes 0/1/2/64, `--json` as one object, a second run that is reported but exits 0, and real child processes:
+  one against a closed port giving exit 2, one started through a symlink.
+- `catalog.test.js`: 3 (pre-existing, not mine).
 
 ### Manual run (real process vs. a throwaway `node:http` stub, not the real app; the stub is not committed)
 - Fresh stub, `--seed 42 --count 120 --verify`: 138 sent, 120 accepted, 12 duplicate, 6 rejected, verification OK, exit 0.
@@ -141,5 +146,4 @@ Simulator test files:
 - `git diff --stat feature/NC-1-mission-tracker...HEAD` lists only `scripts/simulate.js`, `src/sim/*.js`,
   `test/unit/sim-*.test.js`, and this file.
 
-### Requests to orchestrator
-- None blocking. Please confirm decisions 1 and 2 above, and record them in `docs/ai-decisions.md` if you accept them.
+Requests are listed in the brief's "Requests to orchestrator" section above.
