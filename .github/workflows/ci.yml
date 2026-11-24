@@ -44,7 +44,7 @@ jobs:
           done
           docker compose logs; exit 1
       - name: Run simulator (138 events) and verify dashboards
-        run: node scripts/simulate.js --url http://localhost:3000 --seed 42 --count 120 --verify
+        run: node scripts/simulate.js --url http://localhost:3000 --seed 42 --count 120 --verify --strict
       - name: Restart container and check data persisted on the volume
         run: |
           before=$(curl -fsS http://localhost:3000/api/players)
