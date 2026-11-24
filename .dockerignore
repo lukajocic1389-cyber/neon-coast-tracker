@@ -1,0 +1,14 @@
+node_modules
+data
+*.db*
+.git
+.github
+.claude
+docs
+private
+tasks
+test
+coverage
+*.md
+assignment.pdf
+.worker-done
