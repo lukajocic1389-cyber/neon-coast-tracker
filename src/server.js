@@ -1,6 +1,7 @@
-// Server entry point (spec §7). The dashboard router is wired in by the orchestrator after merge (plan T4).
+// Server entry point (spec §7). Dashboard router wired in by the orchestrator after the worker merges (plan T4).
 import { createStore } from './store.js';
 import { createApp } from './app.js';
+import { createDashboardRouter } from './dashboard/routes.js';
 
 const port = Number(process.env.PORT ?? 3000);
 const dbPath = process.env.DB_PATH ?? './data/neon-coast.db';
@@ -11,7 +12,11 @@ if (!Number.isInteger(port) || port < 0 || port > 65535) {
 }
 
 const store = createStore(dbPath);
-const app = createApp({ store });
+const dashboardRouter = createDashboardRouter({
+  getDashboard: (playerId) => store.getDashboard(playerId),
+  listPlayerSummaries: () => store.listPlayerSummaries(),
+});
+const app = createApp({ store, dashboardRouter });
 
 const server = app.listen(port, (err) => {
   if (err) {
