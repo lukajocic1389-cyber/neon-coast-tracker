@@ -55,7 +55,9 @@ test('a failed event resent does not count as a second failure', async () => {
   assert.equal(store.getDashboard('P-01').failed_count, 1);
 });
 
-test('concurrent identical submissions are counted once', async () => {
+// Not a real race: node:sqlite is synchronous, so in one process these requests are handled one after another
+// (review R3). The real two-process race is in test/concurrency.test.js.
+test('ten identical submissions fired together at one process are counted once', async () => {
   const results = await Promise.all(Array.from({ length: 10 }, () => request(app).post('/api/events').send(event())));
   const statuses = results.map((r) => r.status).sort();
   assert.equal(statuses.filter((s) => s === 201).length, 1, `statuses: ${statuses}`);
