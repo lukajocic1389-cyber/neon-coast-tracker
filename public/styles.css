@@ -58,6 +58,7 @@ a:focus-visible {
 }
 
 code, .id { font-family: var(--mono); font-size: 0.9em; }
+.id { white-space: nowrap; }
 
 .visually-hidden {
   position: absolute !important;
@@ -244,6 +245,12 @@ code, .id { font-family: var(--mono); font-size: 0.9em; }
 .data-table tbody tr:hover { background: rgba(46, 230, 255, 0.06); }
 .data-table tbody tr:last-child > * { border-bottom: 0; }
 .data-table tbody th { font-weight: 600; }
+/* History cells stay on one line except the mission title, which may wrap between words.
+   The wrapper scrolls horizontally on narrow screens. */
+.history-table th,
+.history-table td { padding-left: 0.7rem; padding-right: 0.7rem; }
+.history-table td { white-space: nowrap; }
+.history-table td:nth-child(2) { white-space: normal; min-width: 10rem; }
 
 .num { text-align: right !important; white-space: nowrap; }
 .nowrap { white-space: nowrap; }
