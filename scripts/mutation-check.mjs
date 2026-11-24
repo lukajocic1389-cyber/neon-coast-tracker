@@ -28,6 +28,18 @@ const MUTATIONS = [
     ],
   },
   {
+    id: 'M4',
+    title: "Reviewer's race mutation (review R3): no transaction AND no UNIQUE constraint (code pre-check kept)",
+    rule: 'BR-3 under a real two-process race: the same event_id must still be accepted only once',
+    expect: 'red',
+    edits: [
+      { file: 'src/store.js', find: "      db.exec('BEGIN IMMEDIATE');", replace: '      /* MUTATION: no transaction */' },
+      { file: 'src/store.js', find: "        db.exec('ROLLBACK'); // nothing was written", replace: '        /* MUTATION: no rollback */' },
+      { file: 'src/store.js', find: "      db.exec('COMMIT');", replace: '      /* MUTATION: no commit */' },
+      { file: 'src/db.js', find: 'event_id           TEXT NOT NULL UNIQUE,', replace: 'event_id           TEXT NOT NULL,' },
+    ],
+  },
+  {
     id: 'M3',
     title: 'Control: only the code-level duplicate pre-check removed (DB UNIQUE constraint kept)',
     rule: 'Defense in depth: the UNIQUE(event_id) + errcode 2067 safety net alone must still stop double counting',
