@@ -45,10 +45,13 @@ jobs:
           docker compose logs; exit 1
       - name: Run simulator (138 events) and verify dashboards
         run: node scripts/simulate.js --url http://localhost:3000 --seed 42 --count 120 --verify --strict
-      - name: Restart container and check data persisted on the volume
+      - name: Re-create the container and check data persisted on the named volume
+        # `down` (without -v) removes the container and its anonymous volumes; only the named volume
+        # `tracker-data` survives. A plain `restart` would keep the same container (review R2).
         run: |
           before=$(curl -fsS http://localhost:3000/api/players)
-          docker compose restart tracker
+          docker compose down
+          docker compose up -d
           for i in $(seq 1 30); do curl -fsS http://localhost:3000/api/health >/dev/null && break; sleep 1; done
           after=$(curl -fsS http://localhost:3000/api/players)
           echo "before: $before"; echo "after:  $after"
