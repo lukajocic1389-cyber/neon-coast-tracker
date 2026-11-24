@@ -1,0 +1,8 @@
+Review finding R2: does the CI persistence step prove the NAMED volume keeps the data?
+Each line: compose up --build, simulator --count 20, snapshot /api/players, then the step, then compare (2026-11-24, local Docker 29.8.1).
+'WITHOUT named volume' = docker-compose.yml with 'volumes: - tracker-data:/data' removed (Dockerfile VOLUME ["/data"] still present).
+
+WITH named volume,    old step (restart)       : step would PASS  (P-01 cash before=7100, after=7100)
+WITH named volume,    new step (down + up)     : step would PASS  (P-01 cash before=7100, after=7100)
+WITHOUT named volume, old step (restart)       : step would PASS  (P-01 cash before=7100, after=7100)
+WITHOUT named volume, new step (down + up)     : step would FAIL  (P-01 cash before=7100, after=0)

@@ -8,19 +8,24 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { CREWS } from '../../src/catalog.js';
 import { main, EXIT } from '../../scripts/simulate.js';
+import { INVALID_CODES } from '../../src/sim/generator.js';
 
 const SCRIPT = fileURLToPath(new URL('../../scripts/simulate.js', import.meta.url));
 
 // In-memory fake fetch that follows the spec §4 rules closely enough for the CLI tests.
 // `tamper(playerId, dashboard)` lets a test corrupt one dashboard.
-function fakeFetch({ tamper } = {}) {
+function fakeFetch({ tamper, specCodes = false } = {}) {
   const events = new Map();
   return async (url, init = {}) => {
     const { pathname } = new URL(url);
     const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
     if (init.method === 'POST' && pathname === '/api/events') {
       const e = JSON.parse(init.body);
-      if (e.event_id.includes('-BAD-')) return json(400, { status: 'rejected', errors: [{ code: 'X' }] });
+      if (e.event_id.includes('-BAD-')) {
+        // specCodes: answer with every spec §4.2 code the simulator can expect, so the inclusion check passes.
+        const errors = specCodes ? INVALID_CODES.map((code) => ({ code })) : [{ code: 'X' }];
+        return json(400, { status: 'rejected', errors });
+      }
       if (events.has(e.event_id)) return json(200, { status: 'duplicate', event_id: e.event_id });
       events.set(e.event_id, e);
       return json(201, { status: 'accepted', event_id: e.event_id });
@@ -104,6 +109,34 @@ test('cli: a second run reports unexpected duplicates but still exits 0', async 
   const dupes = obj.unexpected.filter((u) => u.expectedStatus === 201);
   assert.equal(dupes.length, 20);
   assert.ok(dupes.every((u) => u.actualStatus === 200));
+});
+
+test('cli: --strict exits 0 when every response is as planned (review R4)', async () => {
+  const c = capture();
+  const code = await main(['--strict', '--verify', '--json'], { fetchImpl: fakeFetch({ specCodes: true }), ...c.io });
+  const obj = JSON.parse(c.out[0]);
+  assert.deepEqual(obj.unexpected, []);
+  assert.equal(code, EXIT.OK);
+});
+
+test('cli: --strict exits 3 on unexpected responses; without it the same run exits 0 (review R4)', async () => {
+  const fetchImpl = fakeFetch({ specCodes: true });
+  await main(['--count', '20'], { fetchImpl, ...capture().io }); // first run fills the fake DB
+  assert.equal(await main(['--count', '20'], { fetchImpl, ...capture().io }), EXIT.OK);
+  const c = capture();
+  assert.equal(await main(['--count', '20', '--strict'], { fetchImpl, ...c.io }), EXIT.UNEXPECTED);
+  assert.match(c.out.join(''), /--strict: these fail the run, exit 3/);
+});
+
+test('cli: a wrong error code on a 400 fails --strict (review R4)', async () => {
+  const c = capture();
+  const code = await main(['--strict'], { fetchImpl: fakeFetch(), ...c.io }); // fake answers code 'X'
+  assert.equal(code, EXIT.UNEXPECTED);
+});
+
+test('cli: a dashboard mismatch (exit 1) takes precedence over --strict (exit 3)', async () => {
+  const fetchImpl = fakeFetch({ tamper: (id, d) => (id === 'P-01' ? { ...d, cash_balance: -1 } : d) });
+  assert.equal(await main(['--verify', '--strict'], { fetchImpl, ...capture().io }), EXIT.MISMATCH);
 });
 
 test('cli: an unreachable server exits 2 (text and json)', async () => {

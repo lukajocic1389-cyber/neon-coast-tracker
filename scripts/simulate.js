@@ -2,10 +2,12 @@
 // Neon Coast simulator CLI (spec §6). Plays the game engine: submits a seeded plan of mission-result events,
 // prints what happened and, with --verify, checks the dashboards against locally computed totals.
 //
-//   npm run simulate -- --url http://localhost:3000 --seed 42 --count 120 [--verify] [--json]
+//   npm run simulate -- --url http://localhost:3000 --seed 42 --count 120 [--verify] [--strict] [--json]
 //
-// Exit codes: 0 = ok, 1 = --verify found mismatches, 2 = could not reach the server, 64 = bad command-line usage.
-// Unexpected statuses (for example a second run where valid events come back as duplicates) are reported only.
+// Exit codes: 0 = ok, 1 = --verify found mismatches, 2 = could not reach the server,
+//             3 = --strict and some response was unexpected, 64 = bad command-line usage.
+// Without --strict, unexpected statuses (for example a second run where valid events come back as duplicates)
+// are reported only. CI uses --strict so a wrong status or error code fails the build (review R4).
 
 import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
@@ -16,14 +18,15 @@ import { generatePlan, DEFAULT_COUNT, MAX_COUNT, MAX_SEED } from '../src/sim/gen
 import { computeExpected } from '../src/sim/expected.js';
 import { runPlan, verifyDashboards, ServerUnreachableError } from '../src/sim/client.js';
 
-export const EXIT = Object.freeze({ OK: 0, MISMATCH: 1, UNREACHABLE: 2, USAGE: 64 });
+export const EXIT = Object.freeze({ OK: 0, MISMATCH: 1, UNREACHABLE: 2, UNEXPECTED: 3, USAGE: 64 });
 const VERIFY_NOTE = '--verify assumes the database was empty before this run.';
 
-const USAGE = `Usage: npm run simulate -- [--url URL] [--seed N] [--count N] [--verify] [--json]
+const USAGE = `Usage: npm run simulate -- [--url URL] [--seed N] [--count N] [--verify] [--strict] [--json]
   --url     API base URL (default http://localhost:3000)
   --seed    integer seed, 0-${MAX_SEED} (default 42)
   --count   number of unique valid events, 0-${MAX_COUNT} (default ${DEFAULT_COUNT})
   --verify  compare each player's dashboard with the expected totals (exit 1 on mismatch)
+  --strict  exit 3 if any response differs from the planned status or error code (for CI)
   --json    print one machine-readable JSON object instead of the text summary`;
 
 class UsageError extends Error {}
@@ -40,6 +43,7 @@ function parseCli(argv) {
         seed: { type: 'string', default: '42' },
         count: { type: 'string', default: String(DEFAULT_COUNT) },
         verify: { type: 'boolean', default: false },
+        strict: { type: 'boolean', default: false },
         json: { type: 'boolean', default: false },
         help: { type: 'boolean', short: 'h', default: false },
       },
@@ -61,7 +65,7 @@ function parseCli(argv) {
   }
   if (!['http:', 'https:'].includes(url.protocol)) throw new UsageError(`--url must be http or https: '${values.url}'.`);
   return { url: values.url, seed: Number(values.seed), count: Number(values.count),
-    verify: values.verify, json: values.json, help: values.help };
+    verify: values.verify, strict: values.strict, json: values.json, help: values.help };
 }
 
 const pad = (v, n) => String(v).padStart(n);
@@ -97,7 +101,8 @@ function textReport({ opts, plan, run, expected, mismatches }) {
   out.push(`  unexpected           ${pad(run.unexpected.length, 5)}`);
   if (run.unexpected.length > 0) {
     out.push('');
-    out.push('Unexpected responses (reported only; they do not change the exit code)');
+    out.push(opts.strict ? 'Unexpected responses (--strict: these fail the run, exit 3)'
+      : 'Unexpected responses (reported only; they do not change the exit code without --strict)');
     for (const u of run.unexpected.slice(0, 10)) {
       const code = u.expectedCode ? ` ${u.expectedCode}` : '';
       out.push(`  ${u.event_id}: expected ${u.expectedStatus}${code}, got ${u.actualStatus} ${JSON.stringify(u.body)}`);
@@ -169,7 +174,9 @@ export async function main(argv, { fetchImpl = fetch, stdout = (s) => process.st
     return EXIT.UNREACHABLE;
   }
 
-  const exitCode = mismatches && mismatches.length > 0 ? EXIT.MISMATCH : EXIT.OK;
+  let exitCode = EXIT.OK;
+  if (mismatches && mismatches.length > 0) exitCode = EXIT.MISMATCH;
+  else if (opts.strict && run.unexpected.length > 0) exitCode = EXIT.UNEXPECTED;
   if (opts.json) {
     stdout(`${JSON.stringify({
       ok: exitCode === EXIT.OK, ...base,

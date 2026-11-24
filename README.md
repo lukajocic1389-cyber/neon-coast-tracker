@@ -51,6 +51,8 @@ With the app running (either option), in a second terminal:
 npm run simulate -- --url http://localhost:3000 --seed 42 --count 120 --verify
 ```
 
+Add `--strict` to make the run fail (exit 3) when any response differs from the planned status or error code. CI uses this.
+
 This sends **138 requests**: 120 valid events (about 25% failed missions), 12 duplicate resends and 6 deliberately invalid
 events. It prints the results and the expected per-player totals. `--verify` then checks every dashboard against those totals
 (it assumes the DB was empty before the run). The dashboard refreshes itself every 5 seconds, so you can watch the numbers arrive.
@@ -77,14 +79,14 @@ curl -s -X POST localhost:3000/api/events -H 'content-type: application/json' -d
 ## Tests
 
 ```bash
-npm test                               # 172 tests: unit + integration (real server restarts), about 1 s
+npm test                               # 178 tests: unit + integration (real restarts, two-process race), about 1 s
 node scripts/mutation-check.mjs        # breaks duplicate handling / the reward rule, confirms tests fail, restores
 ```
 
 See [`docs/testing.md`](docs/testing.md) for how each required test group is covered, coverage, and the mutation results.
 CI (GitHub Actions, `.github/workflows/ci.yml`) runs on every push and pull request:
 1. `npm ci` + `npm test` on Node 24.
-2. A Docker job: `docker compose up --build`, the simulator with `--verify` against the container, then a container restart and a check that the data is unchanged.
+2. A Docker job: `docker compose up --build`, the simulator with `--verify --strict` against the container (any wrong status or error code fails the build), then `docker compose down` + `up` (a new container, so only the named volume carries the data) and a check that the data is unchanged.
 
 ## Project layout
 

@@ -51,16 +51,36 @@ function seed(db) {
  * @param {string} dbPath file path, or ':memory:'
  * @returns {DatabaseSync}
  */
+const SQLITE_BUSY = 5;
+
+/**
+ * Switch to WAL. When two processes open a brand-new file at the same moment, the journal-mode change can
+ * return SQLITE_BUSY without consulting busy_timeout, so retry briefly (review R5).
+ */
+function enableWal(db, { attempts = 50, delayMs = 20 } = {}) {
+  const pause = new Int32Array(new SharedArrayBuffer(4));
+  for (let i = 1; ; i++) {
+    try {
+      db.exec('PRAGMA journal_mode = WAL');
+      return;
+    } catch (err) {
+      if ((err?.errcode & 0xff) !== SQLITE_BUSY || i >= attempts) throw err;
+      Atomics.wait(pause, 0, 0, delayMs); // synchronous sleep; openDb is synchronous by design
+    }
+  }
+}
+
 export function openDb(dbPath) {
   if (dbPath !== ':memory:') {
     mkdirSync(path.dirname(path.resolve(dbPath)), { recursive: true });
   }
   const db = new DatabaseSync(dbPath);
   try {
-    db.exec('PRAGMA journal_mode = WAL');
-    db.exec('PRAGMA foreign_keys = ON');
     // Wait instead of failing at once if another connection holds the write lock.
+    // Set FIRST so it also covers the WAL switch and schema creation (review R5).
     db.exec('PRAGMA busy_timeout = 5000');
+    enableWal(db);
+    db.exec('PRAGMA foreign_keys = ON');
     db.exec(SCHEMA);
     seed(db);
   } catch (err) {
