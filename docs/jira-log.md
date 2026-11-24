@@ -79,3 +79,22 @@ Jira: https://lukajocic1389.atlassian.net/browse/NC-1
 > **Blockers:** none. **Changes in scope:** none.
 >
 > **Status:** NC-3, NC-4, NC-5 → **Done**. NC-1 stays In Progress. NC-6 → In Progress.
+
+## 2026-11-24 17:11 CET: Phase update: Testing (agent, via MCP), comment id 10003
+**Transitions:** NC-6 → **Done** · NC-7 → **In Progress**
+
+> **[Phase update: Testing] posted by the Claude Code orchestrator agent via the Atlassian MCP**
+>
+> **Test command:** `npm test` (node:test + supertest). Real output is committed in `docs/evidence/`. The method is in `docs/testing.md` (`b4f8b93`).
+>
+> **Test runs:** **full suite: 172 tests, 172 pass, 0 fail, exit code 0** (local Node v26.10.0; CI will run Node 24). **Coverage:** 97.22% lines, 88.62% branches, 97.20% functions.
+>
+> **PDF test groups, all covered:** valid events; invalid events (13 cases, plus missing field, several errors at once, bad JSON); completed vs failed rewards; duplicates (200, 409, global id, 10 concurrent identical POSTs → 1 accepted); persistence (a **real server process restart** on the same DB file); the full API → JSON → **rendered HTML** dashboard flow; **simulator repeatability** (seed 42 on two fresh DBs gives identical dashboards, 138 requests = 120/12/6, and a re-run gives 0 accepted, 132 duplicates, totals unchanged).
+>
+> **Mutation check** (`node scripts/mutation-check.mjs`; the code is restored after each run): **M1**, duplicate handling removed (code pre-check and DB UNIQUE): **17 tests fail** ✅ · **M2**, reward rule broken (failed missions pay): **13 tests fail** ✅ · **M3**, control (code pre-check removed, DB UNIQUE kept): **0 fail**, the DB constraint alone still prevents double counting ✅. After restoring the code: 172 / 172 green.
+>
+> **Failed cases and fixes:** no test failed on the real code during this phase. The only red runs were the intentional mutations. Earlier fixes made inside the worker sessions are documented in the worker reports and in docs/ai-decisions.md.
+>
+> **How the AI tests were checked:** the integration tests were written independently from the spec, not from the code; the mutation check proves they catch broken rules, and both mutations were caught by the independent tests too; assertions check exact values, not just status codes; restarts are real processes, not mocks.
+>
+> **Status:** NC-6 → **Done**. NC-7 CI/CD → In Progress.
