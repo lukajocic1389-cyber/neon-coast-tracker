@@ -1,0 +1,14 @@
+Review finding R5: two server processes started at the same moment on the same brand-new DB file.
+Script: two `node src/server.js` on one fresh DB_PATH, health checked after 1.5 s, 5 trials each (2026-11-24, Node v26.10.0, macOS).
+"BEFORE" = src/db.js at commit 1138b9c (journal_mode=WAL before busy_timeout); "AFTER" = with the R5 fix.
+
+BEFORE fix trial 1: server A health=200, server B health=000 (errors: 2 database is locked)
+BEFORE fix trial 2: server A health=200, server B health=200 
+BEFORE fix trial 3: server A health=200, server B health=000 (errors: 2 database is locked)
+BEFORE fix trial 4: server A health=200, server B health=000 (errors: 2 database is locked)
+BEFORE fix trial 5: server A health=000, server B health=000 (errors: 4 database is locked)
+AFTER fix  trial 1: server A health=200, server B health=200 
+AFTER fix  trial 2: server A health=200, server B health=200 
+AFTER fix  trial 3: server A health=200, server B health=200 
+AFTER fix  trial 4: server A health=200, server B health=200 
+AFTER fix  trial 5: server A health=200, server B health=200 
