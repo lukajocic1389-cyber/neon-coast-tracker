@@ -41,7 +41,7 @@ function makeApp(overrides = {}) {
 const COMMON = [
   '<meta http-equiv="refresh" content="5">',
   '<link rel="stylesheet" href="/static/styles.css">',
-  'Last updated <time datetime="2026-11-24T10:15:30.000Z">2026-11-24T10:15:30.000Z</time>',
+  'Last updated 2026-11-24T10:15:30.000Z',
 ];
 
 test('GET / returns 200 HTML with one row per summary', async () => {

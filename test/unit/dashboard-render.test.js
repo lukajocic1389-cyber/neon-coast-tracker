@@ -56,7 +56,7 @@ function assertCommonPage(html) {
   assert.match(html, /<meta http-equiv="refresh" content="5">/);
   assert.match(html, /<link rel="stylesheet" href="\/static\/styles.css">/);
   assert.match(html, /<title>[^<]*Neon Coast[^<]*<\/title>/);
-  assert.ok(html.includes('Last updated <time datetime="2026-11-24T10:15:30.000Z">2026-11-24T10:15:30.000Z</time>'),
+  assert.ok(html.includes('Last updated 2026-11-24T10:15:30.000Z'),
     'footer shows the injected now as ISO UTC');
   assert.ok(html.includes('Fictional companion app. Not affiliated with any game publisher.'));
   assert.doesNotMatch(html, /<script/i, 'pages contain no scripts');
@@ -87,7 +87,7 @@ test('renderPlayer puts the correct raw numbers in the stat test hooks', () => {
   assert.equal(hookValue(html, 'failed-count'), '1');
   assert.equal(hookValue(html, 'cash-balance'), '1450');
   assert.equal(hookValue(html, 'total-reputation'), '55');
-  assert.ok(html.includes('<span class="tile-value" data-testid="cash-balance" data-value="1450">$1,450</span>'));
+  assert.ok(html.includes('<span data-testid="cash-balance" data-value="1450">$1,450</span>'), 'exact markup from the brief');
   assert.match(html, /Nova Reyes/);
   assert.match(html, /P-01/);
   assert.match(html, /<a href="\/">/, 'links back to the index');

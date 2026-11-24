@@ -60,7 +60,7 @@ function layout({ title, now, body }) {
 ${body}
 </main>
 <footer class="site-footer">
-  <p>Last updated <time datetime="${escapeHtml(updated)}">${escapeHtml(updated)}</time> · refreshes every 5 seconds</p>
+  <p>Last updated ${escapeHtml(updated)} · refreshes every 5 seconds</p>
   <p>Fictional companion app. Not affiliated with any game publisher.</p>
 </footer>
 </body>
@@ -107,7 +107,7 @@ ${content}
 function statTile(testId, label, value, display, modifier) {
   return `  <div class="tile tile-${modifier}">
     <span class="tile-label">${escapeHtml(label)}</span>
-    <span class="tile-value" data-testid="${testId}" data-value="${escapeHtml(value)}">${display}</span>
+    <span class="tile-value"><span data-testid="${testId}" data-value="${escapeHtml(value)}">${display}</span></span>
   </div>`;
 }
 

@@ -107,7 +107,6 @@ code, .id { font-family: var(--mono); font-size: 0.9em; }
   font-size: 0.875rem;
 }
 .site-footer p { margin: 0.2rem 0; }
-.site-footer time { font-family: var(--mono); color: var(--text); }
 
 /* ---------- Layout ---------- */
 
