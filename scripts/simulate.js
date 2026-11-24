@@ -10,8 +10,9 @@
 import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
+import { realpathSync } from 'node:fs';
 import { CREWS, PLAYERS } from '../src/catalog.js';
-import { generatePlan, DEFAULT_COUNT, MAX_COUNT } from '../src/sim/generator.js';
+import { generatePlan, DEFAULT_COUNT, MAX_COUNT, MAX_SEED } from '../src/sim/generator.js';
 import { computeExpected } from '../src/sim/expected.js';
 import { runPlan, verifyDashboards, ServerUnreachableError } from '../src/sim/client.js';
 
@@ -20,7 +21,7 @@ const VERIFY_NOTE = '--verify assumes the database was empty before this run.';
 
 const USAGE = `Usage: npm run simulate -- [--url URL] [--seed N] [--count N] [--verify] [--json]
   --url     API base URL (default http://localhost:3000)
-  --seed    integer seed, >= 0 (default 42)
+  --seed    integer seed, 0-${MAX_SEED} (default 42)
   --count   number of unique valid events, 0-${MAX_COUNT} (default ${DEFAULT_COUNT})
   --verify  compare each player's dashboard with the expected totals (exit 1 on mismatch)
   --json    print one machine-readable JSON object instead of the text summary`;
@@ -46,7 +47,9 @@ function parseCli(argv) {
   } catch (err) {
     throw new UsageError(err.message);
   }
-  if (!/^\d+$/.test(values.seed)) throw new UsageError(`--seed must be a non-negative integer, got '${values.seed}'.`);
+  if (!/^\d+$/.test(values.seed) || Number(values.seed) > MAX_SEED) {
+    throw new UsageError(`--seed must be an integer from 0 to ${MAX_SEED}, got '${values.seed}'.`);
+  }
   if (!/^\d+$/.test(values.count) || Number(values.count) > MAX_COUNT) {
     throw new UsageError(`--count must be an integer from 0 to ${MAX_COUNT}, got '${values.count}'.`);
   }
@@ -181,7 +184,10 @@ export async function main(argv, { fetchImpl = fetch, stdout = (s) => process.st
   return exitCode;
 }
 
-const invokedDirectly = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+// realpath both sides: import.meta.url is already resolved, argv[1] may go through a symlink.
+const realpathOrSelf = (p) => { try { return realpathSync(p); } catch { return resolve(p); } };
+const invokedDirectly = Boolean(process.argv[1])
+  && realpathOrSelf(process.argv[1]) === realpathOrSelf(fileURLToPath(import.meta.url));
 if (invokedDirectly) {
   process.exitCode = await main(process.argv.slice(2));
 }

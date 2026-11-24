@@ -1,5 +1,5 @@
 // Seeded pseudo-random number generator for the simulator (spec §6).
-// mulberry32: tiny, fast and fully deterministic for a 32-bit seed. No Math.random anywhere.
+// mulberry32: tiny, fast and fully deterministic for a 32-bit seed. No global randomness is used.
 
 /** Normalise a seed (number or numeric string) to an unsigned 32-bit integer. */
 export function normaliseSeed(seed) {

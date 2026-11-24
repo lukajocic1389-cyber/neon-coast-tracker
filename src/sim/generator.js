@@ -7,6 +7,7 @@ import { createPrng, normaliseSeed } from './prng.js';
 export const DEFAULT_COUNT = 120;
 export const BASE_TIMESTAMP_MS = Date.parse('2026-11-20T12:00:00.000Z');
 export const MAX_COUNT = 9999; // valid ids use a 4-digit sequence number
+export const MAX_SEED = 0xffffffff; // the PRNG is 32-bit: larger seeds would alias streams under different ids
 
 /** The defect cycle for invalid events, in order. */
 export const INVALID_CODES = Object.freeze([
@@ -66,7 +67,7 @@ function applyDefect(rng, event, code) {
 
 function checkArgs(seed, count) {
   normaliseSeed(seed); // throws TypeError on non-integers
-  if (Number(seed) < 0) throw new RangeError(`Seed must be >= 0, got ${seed}.`);
+  if (Number(seed) < 0 || Number(seed) > MAX_SEED) throw new RangeError(`Seed must be from 0 to ${MAX_SEED}, got ${seed}.`);
   if (!Number.isInteger(count) || count < 0 || count > MAX_COUNT) {
     throw new RangeError(`Count must be an integer from 0 to ${MAX_COUNT}, got ${count}.`);
   }

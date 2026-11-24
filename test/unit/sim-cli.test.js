@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { execFile } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { mkdtempSync, rmSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { CREWS } from '../../src/catalog.js';
 import { main, EXIT } from '../../scripts/simulate.js';
 
@@ -114,10 +117,27 @@ test('cli: an unreachable server exits 2 (text and json)', async () => {
 });
 
 test('cli: bad arguments exit 64 with usage', async () => {
-  for (const args of [['--seed', 'abc'], ['--seed', '-1'], ['--count', '1.5'], ['--count', '10000'], ['--url', 'ftp://x'], ['--nope']]) {
+  for (const args of [['--seed', 'abc'], ['--seed', '-1'], ['--seed', '4294967296'], ['--seed', '1e21'],['--count', '1.5'], ['--count', '10000'], ['--url', 'ftp://x'], ['--nope']]) {
     const c = capture();
     assert.equal(await main(args, { fetchImpl: fakeFetch(), ...c.io }), EXIT.USAGE, args.join(' '));
     assert.match(c.err.join(''), /Usage:/);
+  }
+});
+
+const runNode = (args) => new Promise((resolve) => {
+  execFile(process.execPath, args, (err, stdout, stderr) => resolve({ code: err ? err.code : 0, stdout, stderr }));
+});
+
+test('cli: the real process runs when started through a symlink', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'nc-sim-'));
+  const link = join(dir, 'simulate.js');
+  symlinkSync(SCRIPT, link);
+  try {
+    const { code, stdout } = await runNode([link, '--help']);
+    assert.equal(code, 0);
+    assert.match(stdout, /Usage:/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 });
 
@@ -126,11 +146,7 @@ test('cli: the real process exits 2 against a closed port', async () => {
   await new Promise((r) => closed.listen(0, '127.0.0.1', r));
   const url = `http://127.0.0.1:${closed.address().port}`;
   await new Promise((r) => closed.close(r));
-  const { code, stderr } = await new Promise((resolve) => {
-    execFile(process.execPath, [SCRIPT, '--url', url, '--count', '5'], (err, _stdout, stderr) => {
-      resolve({ code: err ? err.code : 0, stderr });
-    });
-  });
+  const { code, stderr } = await runNode([SCRIPT, '--url', url, '--count', '5']);
   assert.equal(code, 2);
   assert.match(stderr, /Could not reach the server/);
 });
