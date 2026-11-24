@@ -159,6 +159,21 @@ describe('app wiring', () => {
     assert.doesNotMatch(JSON.stringify(res.body), /secret|stack|at /);
   });
 
+  test('malformed %-encoding in a path param → 400, not 500, and no error is logged (review R1)', async (t) => {
+    const logged = t.mock.method(console, 'error', () => {});
+    const store = { getDashboard: () => null, listPlayerSummaries: () => [] };
+    const router = express.Router();
+    router.get('/players/:player_id', (req, res) => res.send('ok'));
+    const app = createApp({ store, dashboardRouter: router });
+    for (const url of ['/api/players/%E0%A4%A/dashboard', '/players/%E0%A4%A']) {
+      const res = await request(app).get(url);
+      assert.equal(res.status, 400, url);
+      assert.equal(res.body.status, 'error');
+      assert.match(res.body.message, /Malformed URL/);
+    }
+    assert.equal(logged.mock.callCount(), 0);
+  });
+
   test('/static: a missing file is a plain 404, not an error', async () => {
     const res = await request(createApp({ store: {} })).get('/static/does-not-exist.css');
     assert.equal(res.status, 404);

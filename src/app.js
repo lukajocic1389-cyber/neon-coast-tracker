@@ -73,9 +73,15 @@ export function createApp({ store, dashboardRouter } = {}) {
       });
       return;
     }
-    if (err?.expose && Number.isInteger(err.status) && err.status >= 400 && err.status < 500) {
-      // Other client errors raised by the body parser (e.g. too large, bad charset).
-      res.status(err.status).json({ status: 'error', message: err.message });
+    const status = Number.isInteger(err?.status) ? err.status : err?.statusCode;
+    if (Number.isInteger(status) && status >= 400 && status < 500) {
+      // Client errors are not server crashes: answer with their own status, don't log a stack (review R1).
+      // Body-parser errors (413 too large, 415 charset) mark their message safe via `expose`; others, such as
+      // Express's URIError for a malformed %-encoded path param, get a generic message.
+      const message = err.expose ? err.message
+        : err instanceof URIError ? 'Malformed URL: the path contains an invalid percent-encoding.'
+        : 'Bad request.';
+      res.status(status).json({ status: 'error', message });
       return;
     }
     console.error('Unhandled error:', err);
