@@ -1,6 +1,7 @@
 import { test, describe, before, after, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import { createStore, payloadHash } from '../../src/store.js';
@@ -106,8 +107,12 @@ describe('store', () => {
       assert.equal(row.reputation_awarded, 0);
       assert.equal(row.timestamp, '2026-11-20T15:00:00.000Z');
       assert.match(row.received_at, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-      assert.equal(row.payload_hash, payloadHash({ ...event({ event_id: 'RUN-1002', result: 'failed',
-        cash_reward: 900, reputation_reward: 40 }), timestamp: '2026-11-20T15:00:00.000Z' }));
+      // Spec §3 formula, written out independently of payloadHash().
+      const expected = createHash('sha256').update(JSON.stringify(['RUN-1002', 'P-01', 'M-12', 'Harbor Crew',
+        'failed', 900, 40, '2026-11-20T15:00:00.000Z'])).digest('hex');
+      assert.equal(row.payload_hash, expected);
+      assert.equal(payloadHash({ ...event({ event_id: 'RUN-1002', result: 'failed', cash_reward: 900,
+        reputation_reward: 40 }), timestamp: '2026-11-20T15:00:00.000Z' }), expected);
     } finally { db.close(); }
   });
 

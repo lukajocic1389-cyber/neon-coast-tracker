@@ -92,7 +92,8 @@ Everything else, including `src/catalog.js`, `package.json`, `package-lock.json`
   ok; 1,000,001, 1.5, `"500"`, booleans, objects, arrays rejected; reputation 0/1,000 ok, 1,001/1.5/`"20"` rejected); impossible dates
   (Feb 30, Feb 29 2026, month 13, 24:00, :60 min/sec); `.5`/`.50`/`.007` normalisation; leap day; extra fields ignored.
 - `core-store.test.js` (21): `openDb` (nested dir, WAL, FKs, idempotent re-open, DB-level UNIQUE gives 2067); completed/failed
-  totals; failed stores the reported values but awards 0; an identical duplicate → 200 with totals and row count unchanged; key order, an
+  totals; failed stores the reported values but awards 0, and the stored `payload_hash` equals an independent SHA-256 of the
+  literal §3 array; an identical duplicate → 200 with totals and row count unchanged; key order, an
   extra field or `…:00Z` vs `…:00.000Z` still → 200; different data → 409 with totals unchanged; global `event_id` (D8); a failed event
   resent as completed → 409 with no reward; a rejected event is not stored and its id can be reused; `INVALID_BODY` without throwing; unknown player →
   `null`; an all-zero dashboard for a player with no events; per-crew reputation; history: 12 events → 10, `timestamp DESC, seq DESC`
@@ -116,7 +117,7 @@ All test DBs live under `os.tmpdir()` (`mkdtempSync`) and are removed afterwards
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 253.569625
+ℹ duration_ms 245.161167
 ```
 **The same suite on the contracted runtime** (`docker run node:24-alpine`, Node **v24.22.3**, read-only copy of this worktree):
 ```
@@ -134,7 +135,9 @@ accepted, the same POST → 200 duplicate, `{bad` → 400 `INVALID_JSON`, `/api/
 | Mutation | Result |
 |---|---|
 | `rules.js`: failed also pays (`if (true)`) | 8 tests fail |
-| `store.js`: `payload_hash` leaves out `cash_reward` | 1 test fails (409 case) |
+| `store.js`: `payload_hash` leaves out `cash_reward` | 1 test fails ("the same id with different data returns 409…") |
+| `store.js`: `payload_hash` swaps `crew`/`result` order | 1 test fails (the pinned-hash assertion in "accepts a failed event…") |
+| `app.js`: plain `express.json()` (strict) | 1 test fails: `"hello"`/`42`/`null` give `INVALID_JSON` instead of `INVALID_BODY` (this confirms Decision 1) |
 | `store.js`: pre-check for an existing `event_id` disabled | **0 fail**, as expected: every duplicate is then caught by `UNIQUE` + errcode 2067 and gets the same 200/409. This shows the DB-level safety net works on its own. |
 | `store.js`: pre-check **and** the 2067 handler disabled | 7 tests fail |
 
