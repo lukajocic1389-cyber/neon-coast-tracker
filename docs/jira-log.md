@@ -172,3 +172,19 @@ Jira: https://lukajocic1389.atlassian.net/browse/NC-1
 > **Final state:** all evidence is linked on this issue, and all sub-tasks are Done.
 >
 > **Status:** NC-1 In Progress → **Done**.
+
+## 2026-11-27 21:07 CET: NC-10 created; implementation and PR (agent, via MCP), comment id 10008
+**Created:** NC-10 (Story) "Test console: send mission events from the dashboard", requested by the human after the GATE 3 sign-off.
+**Transitions:** NC-10 To Do → **In Progress**
+
+> **[Implementation and PR] posted by the Claude Code agent via the Atlassian MCP**
+>
+> **Built:** the `/console` test page. It is a server-rendered form with no client JS. The form uses the same `store.submitEvent()` as `POST /api/events` and shows the request, the HTTP status and the JSON response. It has a resend button for duplicates and deliberately invalid choices for rejections.
+>
+> **Commits on `feature/test-console`:** `a3a89c0` feat, `9234a86` test, `973c7a6` docs (decision #26), plus a README update.
+>
+> **Verified:** `npm test` 194 / 194 pass (178 existing + 16 new); the mutation check passed; in the browser: send → 201 accepted, resend → 200 duplicate, P-99 → 400 UNKNOWN_PLAYER.
+>
+> **PR:** https://github.com/lukajocic1389-cyber/neon-coast-tracker/pull/5 — CI green on both jobs (tests, Docker smoke test). **Not merged:** waiting for the human.
+>
+> **Status:** To Do → **In Progress**.
