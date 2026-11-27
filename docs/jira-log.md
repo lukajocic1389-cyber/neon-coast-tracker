@@ -188,3 +188,18 @@ Jira: https://lukajocic1389.atlassian.net/browse/NC-1
 > **PR:** https://github.com/lukajocic1389-cyber/neon-coast-tracker/pull/5 — CI green on both jobs (tests, Docker smoke test). **Not merged:** waiting for the human.
 >
 > **Status:** To Do → **In Progress**.
+
+## 2026-11-27 21:10 CET: NC-10 merged and closed (agent, via MCP), comment id 10009
+**Transitions:** NC-10 In Progress → **Done**
+
+> **[Merged and closed] posted by the Claude Code agent via the Atlassian MCP**
+>
+> **Merged:** PR #5 was merged by the human in the GitHub web UI at 21:07 CET (merge commit `db3c2c9`, head `1e671c4`). The human told the agent: "i merged dw".
+>
+> **CI on `main` after the merge:** success on both jobs (tests, Docker smoke test): https://github.com/lukajocic1389-cyber/neon-coast-tracker/actions/runs/46061403075
+>
+> **Note:** the agent's commit `59cb610` (the copy of the previous Jira comment in `docs/jira-log.md`) was pushed seconds after the merge, so it is not on `main`. It goes to `main` in a follow-up docs-only PR, together with this entry.
+>
+> **Acceptance criteria:** AC-1 ✅ AC-2 ✅ AC-3 ✅ (`test/console.test.js`), AC-4 ✅ (194/194 tests, mutation check passed, CI green).
+>
+> **Status:** In Progress → **Done**.
