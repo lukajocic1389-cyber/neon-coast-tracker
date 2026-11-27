@@ -15,6 +15,7 @@ const store = createStore(dbPath);
 const dashboardRouter = createDashboardRouter({
   getDashboard: (playerId) => store.getDashboard(playerId),
   listPlayerSummaries: () => store.listPlayerSummaries(),
+  submitEvent: (body) => store.submitEvent(body),
 });
 const app = createApp({ store, dashboardRouter });
 
