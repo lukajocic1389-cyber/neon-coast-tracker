@@ -24,6 +24,7 @@ export function buildApp(dbPath) {
   const dashboardRouter = createDashboardRouter({
     getDashboard: (id) => store.getDashboard(id),
     listPlayerSummaries: () => store.listPlayerSummaries(),
+    submitEvent: (body) => store.submitEvent(body),
   });
   return { store, app: createApp({ store, dashboardRouter }) };
 }

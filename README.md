@@ -68,6 +68,7 @@ Run the same command again: every valid event now comes back as a duplicate and 
 | POST | `/api/events` | submit a mission result → 201 / 200 / 409 / 400 |
 | GET | `/api/players/:id/dashboard` | dashboard data as JSON (404 for an unknown player) |
 | GET | `/` and `/players/:id` | HTML dashboard |
+| GET/POST | `/console` | test console: a form that sends one event through the same code as `POST /api/events` (NC-10) |
 
 ```bash
 curl -s -X POST localhost:3000/api/events -H 'content-type: application/json' -d '{
@@ -75,6 +76,10 @@ curl -s -X POST localhost:3000/api/events -H 'content-type: application/json' -d
   "result":"completed","cash_reward":500,"reputation_reward":20,"timestamp":"2026-11-20T15:00:00Z"}'
 # {"status":"accepted","event_id":"RUN-1001","result":"completed","awarded":{"cash":500,"reputation":20,"crew":"Harbor Crew"}}
 ```
+
+Without curl: open http://localhost:3000/console (or **Test console** in the header). Pick a player, mission, crew and result,
+then press **Send event**. The page shows the request body, the HTTP status and the JSON response. **Resend this exact event**
+tests duplicates, and the choices marked "expect 400" (P-99, M-99, `abandoned`) test rejections.
 
 ## Tests
 

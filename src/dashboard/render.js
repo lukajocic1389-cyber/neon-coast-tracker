@@ -40,27 +40,31 @@ function playerHref(playerId) {
   return `/players/${encodeURIComponent(String(playerId ?? ''))}`;
 }
 
-function layout({ title, now, body }) {
+/**
+ * Page shell. `refresh: false` drops the 5-second meta refresh (used by the test console, so a reload
+ * cannot wipe a half-filled form).
+ */
+export function layout({ title, now, body, refresh = true }) {
   const updated = toDate(now).toISOString();
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="5">
-<title>${escapeHtml(title)} · Neon Coast</title>
+${refresh ? '<meta http-equiv="refresh" content="5">\n' : ''}<title>${escapeHtml(title)} · Neon Coast</title>
 <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
 <header class="site-header">
   <a class="brand" href="/"><span class="brand-neon">Neon</span> <span class="brand-coast">Coast</span></a>
   <span class="brand-sub">Mission &amp; Reputation Tracker</span>
+  <nav class="site-nav"><a href="/">Players</a> <a href="/console">Test console</a></nav>
 </header>
 <main class="container">
 ${body}
 </main>
 <footer class="site-footer">
-  <p>Last updated ${escapeHtml(updated)} · refreshes every 5 seconds</p>
+  <p>Last updated ${escapeHtml(updated)}${refresh ? ' · refreshes every 5 seconds' : ''}</p>
   <p>Fictional companion app. Not affiliated with any game publisher.</p>
 </footer>
 </body>
